@@ -77,7 +77,6 @@ public class DetailsActivity extends AppCompatActivity {
 
         progress.setMessage("Downloading...");
         progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progress.show();
 
         scrool_flg = true;
         loading = true;
