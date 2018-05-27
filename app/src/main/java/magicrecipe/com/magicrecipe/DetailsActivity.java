@@ -1,5 +1,6 @@
 package magicrecipe.com.magicrecipe;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.graphics.PorterDuff;
@@ -109,6 +110,7 @@ public class DetailsActivity extends AppCompatActivity {
                             rv_details.setLayoutManager(mLayoutManager);
                             rv_details.setItemAnimator(new DefaultItemAnimator());
                             rv_details.setAdapter(mAdapter);
+                            rv_details.addOnScrollListener(new EndlessScrollListener(rv_details));
                         } else {
                             pbr.setVisibility(View.GONE);
                             mAdapter.notifyDataSetChanged();
@@ -135,7 +137,11 @@ public class DetailsActivity extends AppCompatActivity {
             }
         });
     }
-
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
     public class EndlessScrollListener extends RecyclerView.OnScrollListener {
 
         private RecyclerView listView;

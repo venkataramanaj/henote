@@ -4,18 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/list"
     android:orientation="vertical"
     android:padding="10dp"
+    android:background="@color/list"
     tools:context="magicrecipe.com.magicrecipe.MainActivity">
 
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/detailslist"
         android:layout_width="match_parent"
+        android:id="@+id/detailslist"
         android:layout_height="match_parent"
         android:layout_marginTop="10dp"></android.support.v7.widget.RecyclerView>
-
     <ProgressBar
         android:id="@+id/load_progress"
         style="?android:attr/progressBarStyleSmall"

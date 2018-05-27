@@ -13,7 +13,9 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -66,6 +68,15 @@ public class MainActivity extends AppCompatActivity {
                 ContextCompat.getColor(this, R.color.colorPrimaryDark),
                 PorterDuff.Mode.MULTIPLY);
 
+        rv_receipes.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+                return false;
+            }
+        });
     }
 
     @OnClick(R.id.get)
@@ -188,9 +199,11 @@ public class MainActivity extends AppCompatActivity {
             int lastVisiblePosition = layoutManager.findLastVisibleItemPosition();
             if (scrollState == 0 && lastVisiblePosition == listView.getAdapter().getItemCount() - 1 && scrool_flg) {
                 if (!loading) {
-                    loading = true;
-                    spageno++;
-                    callingAPI(str_ingredeients, spageno);
+                    if (isNetworkAvailable()) {
+                        loading = true;
+                        spageno++;
+                        callingAPI(str_ingredeients, spageno);
+                    }
                 }
             }
         }
