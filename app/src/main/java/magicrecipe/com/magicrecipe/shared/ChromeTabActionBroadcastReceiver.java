@@ -5,14 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
-import magicrecipe.com.magicrecipe.R;
-
-/**
- * Action Broadcast receiver for the custom chrome tab
- * <p>
- * Created by segun.famisa on 04/06/2016.
- */
-
 public class ChromeTabActionBroadcastReceiver extends BroadcastReceiver {
     public static final String KEY_ACTION_SOURCE = "org.chromium.customtabsdemos.ACTION_SOURCE";
 
@@ -26,27 +18,8 @@ public class ChromeTabActionBroadcastReceiver extends BroadcastReceiver {
         String data = intent.getDataString();
 
         if (data != null) {
-            String toastText = getToastText(context, intent.getIntExtra(KEY_ACTION_SOURCE, -1), data);
 
-            Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-    private String getToastText(Context context, int actionSource, String message) {
-        switch (actionSource) {
-            case ACTION_MENU_ITEM_1:
-                return "menu1";
-//                        context.getString(R.string.toast_menu_1);
-            case ACTION_MENU_ITEM_2:
-                return "menu2";
-//                        context.getString(R.string.toast_menu_2);
-            case ACTION_ACTION_BUTTON:
-                return "menu3";
-//                        context.getString(R.string.text_action_button);
-            default:
-                return "menu3";
-//                        context.getString(R.string.unknown_action);
+//            Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show();
         }
     }
 }

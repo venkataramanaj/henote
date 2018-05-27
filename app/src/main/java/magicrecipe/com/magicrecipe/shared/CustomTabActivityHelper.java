@@ -11,18 +11,6 @@ import android.support.customtabs.CustomTabsSession;
 
 import java.util.List;
 
-import magicrecipe.com.magicrecipe.shared.CustomTabsHelper;
-import magicrecipe.com.magicrecipe.shared.ServiceConnectionCallback;
-
-/**
- * Helper class to manage connection to the custom tab activity
- *
- * Adapted from the CustomTabActivityHelper in the sample code here:
- *
- * https://github.com/GoogleChrome/custom-tabs-client/blob/master/demos/src/main/java/org/chromium/customtabsdemos/CustomTabActivityHelper.java
- *
- * Created by segun.famisa on 04/06/2016.
- */
 
 public class CustomTabActivityHelper implements ServiceConnectionCallback {
 
