@@ -26,9 +26,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import magicrecipe.com.magicrecipe.adapter.ReceipeAdapter;
 import magicrecipe.com.magicrecipe.network.Api;
 import magicrecipe.com.magicrecipe.network.RetrofitClient;
@@ -37,6 +44,7 @@ import magicrecipe.com.magicrecipe.pojo.Result;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,6 +66,10 @@ public class MainActivity extends AppCompatActivity {
     private int spageno = 1;
     private List<Result> result, result_total;
 
+    //injecting retrofit
+    @Inject
+    Retrofit retrofit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
         pbr.getIndeterminateDrawable().setColorFilter(
                 ContextCompat.getColor(this, R.color.colorPrimaryDark),
                 PorterDuff.Mode.MULTIPLY);
+
+        ((MyApplication) getApplication()).getNetComponent().inject(this);
 
         rv_receipes.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -88,7 +102,8 @@ public class MainActivity extends AppCompatActivity {
                 spageno = 1;
                 scrool_flg = true;
                 loading = false;
-                apiService = RetrofitClient.getClient().create(Api.class);
+//                apiService = RetrofitClient.getClient().create(Api.class);
+                apiService = retrofit.create(Api.class);
                 str_ingredeients = edt_ingredients.getText().toString();
                 callingAPI(str_ingredeients, spageno);
             } else
@@ -115,7 +130,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        Call<Main> call = apiService.getData(queryParams);
+        // Fetching all notes
+        apiService.getData(queryParams)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(getObserverData(ingredients, spage));
+                .subscribe(getAnimalsObserver(ingredients, spage));
+
+
+      /*  Call<Main> call = apiService.getData(queryParams);
         call.enqueue(new Callback<Main>() {
             @Override
             public void onResponse(Call<Main> call, Response<Main> response) {
@@ -171,7 +194,114 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "" + t.toString(), Toast.LENGTH_SHORT).show();
                 progress.dismiss();
             }
-        });
+        });*/
+    }
+
+    private DisposableSingleObserver<Main> getObserverData(final String ingredients, final int spage) {
+        return new DisposableSingleObserver<Main>() {
+            @Override
+            public void onSuccess(Main notes) {
+                // Received all notes
+                result = notes.getResults();
+                result_total.addAll(result);
+                Log.e("result is", "<><><" + result.size());
+                if (result.size() > 0) {
+                    if (result.size() < 10) {
+                        scrool_flg = false;
+                    }
+                    loading = false;
+
+                    if (spage == 1) {
+                        progress.dismiss();
+
+                        rv_receipes.setHasFixedSize(true);
+                        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+                        rv_receipes.setLayoutManager(mLayoutManager);
+                        mAdapter = new ReceipeAdapter(ingredients, result_total, MainActivity.this);
+                        rv_receipes.setAdapter(mAdapter);
+                        rv_receipes.addOnScrollListener(new EndlessScrollListener(rv_receipes));
+
+                    } else {
+                        pbr.setVisibility(View.GONE);
+                        mAdapter.notifyDataSetChanged();
+                    }
+
+
+                } else {
+                    pbr.setVisibility(View.GONE);
+                    progress.dismiss();
+                    loading = false;
+                    scrool_flg = false;
+                    Toast.makeText(MainActivity.this, "No result found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                // Network error
+                Toast.makeText(MainActivity.this, "" + e.toString(), Toast.LENGTH_SHORT).show();
+                progress.dismiss();
+            }
+        };
+    }
+
+    private Observer<Main> getAnimalsObserver(final String ingredients, final int spage) {
+        return new Observer<Main>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.d("TAG", "onSubscribe");
+            }
+
+            @Override
+            public void onNext(Main s) {
+                Log.d("TAG", "Name: " + s);
+
+                result = s.getResults();
+                result_total.addAll(result);
+                Log.e("result is", "<><><" + result.size());
+                if (result.size() > 0) {
+                    if (result.size() < 10) {
+                        scrool_flg = false;
+                    }
+                    loading = false;
+
+                    if (spage == 1) {
+                        progress.dismiss();
+
+                        rv_receipes.setHasFixedSize(true);
+                        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+                        rv_receipes.setLayoutManager(mLayoutManager);
+                        mAdapter = new ReceipeAdapter(ingredients, result_total, MainActivity.this);
+                        rv_receipes.setAdapter(mAdapter);
+                        rv_receipes.addOnScrollListener(new EndlessScrollListener(rv_receipes));
+
+                    } else {
+                        pbr.setVisibility(View.GONE);
+                        mAdapter.notifyDataSetChanged();
+                    }
+
+
+                } else {
+                    pbr.setVisibility(View.GONE);
+                    progress.dismiss();
+                    loading = false;
+                    scrool_flg = false;
+                    Toast.makeText(MainActivity.this, "No result found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e("TAG", "onError: " + e.getMessage());
+                Toast.makeText(MainActivity.this, "" + e.toString(), Toast.LENGTH_SHORT).show();
+                progress.dismiss();
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d("TAG", "All items are emitted!");
+            }
+        };
     }
 
     private boolean isNetworkAvailable() {

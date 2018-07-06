@@ -23,6 +23,10 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import magicrecipe.com.magicrecipe.adapter.DetailsAdapter;
 import magicrecipe.com.magicrecipe.adapter.ReceipeAdapter;
 import magicrecipe.com.magicrecipe.network.Api;
@@ -50,7 +54,8 @@ public class DetailsActivity extends AppCompatActivity {
     private String str_ingredeients, str_receipe;
     private boolean scrool_flg = true, loading;
     private int spageno = 1;
-    private List<Result> result, result_total= new ArrayList<Result>();;
+    private List<Result> result, result_total = new ArrayList<Result>();
+    ;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,7 +92,14 @@ public class DetailsActivity extends AppCompatActivity {
             pbr.setVisibility(View.VISIBLE);
         }
 
-        Call<Main> call = apiService.getData(queryParams);
+        // Fetching all notes
+        apiService.getData(queryParams)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(getObserverData(ingredients, spage));
+                .subscribe(getAnimalsObserver(ingredients, spage));
+
+      /*  Call<Main> call = apiService.getData(queryParams);
         call.enqueue(new Callback<Main>() {
             @Override
             public void onResponse(Call<Main> call, Response<Main> response) {
@@ -134,13 +146,67 @@ public class DetailsActivity extends AppCompatActivity {
                 Log.e("fail is", "<><><" + call.request().toString());
                 progress.dismiss();
             }
-        });
+        });*/
     }
+
+    private Observer<Main> getAnimalsObserver(final String ingredients, final int spage) {
+        return new Observer<Main>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.d("TAG", "onSubscribe");
+            }
+
+            @Override
+            public void onNext(Main s) {
+                Log.d("TAG", "Name: " + s);
+                result = s.getResults();
+                result_total.addAll(result);
+                if (result.size() > 0) {
+                    if (result.size() < 10) {
+                        scrool_flg = false;
+                    }
+                    loading = false;
+                    if (spage == 1) {
+                        progress.dismiss();
+                        mAdapter = new DetailsAdapter(result_total, DetailsActivity.this);
+                        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+                        rv_details.setLayoutManager(mLayoutManager);
+                        rv_details.setItemAnimator(new DefaultItemAnimator());
+                        rv_details.setAdapter(mAdapter);
+                        rv_details.addOnScrollListener(new EndlessScrollListener(rv_details));
+                    } else {
+                        pbr.setVisibility(View.GONE);
+                        mAdapter.notifyDataSetChanged();
+                    }
+                } else {
+                    pbr.setVisibility(View.GONE);
+                    progress.dismiss();
+                    loading = false;
+                    scrool_flg = false;
+                    Toast.makeText(DetailsActivity.this, "No result found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e("TAG", "onError: " + e.getMessage());
+                Toast.makeText(DetailsActivity.this, "" + e.toString(), Toast.LENGTH_SHORT).show();
+                progress.dismiss();
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d("TAG", "All items are emitted!");
+            }
+        };
+    }
+
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
     }
+
     public class EndlessScrollListener extends RecyclerView.OnScrollListener {
 
         private RecyclerView listView;
@@ -161,7 +227,7 @@ public class DetailsActivity extends AppCompatActivity {
                 if (!loading) {
                     loading = true;
                     spageno++;
-                    callingAPI(str_ingredeients, str_receipe, spageno);
+//                    callingAPI(str_ingredeients, str_receipe, spageno);
                 }
             }
         }

@@ -6,6 +6,8 @@ package magicrecipe.com.magicrecipe.network;
 
 import java.util.Map;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import magicrecipe.com.magicrecipe.pojo.Main;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -14,5 +16,5 @@ import retrofit2.http.QueryMap;
 public interface Api {
 
     @GET("api?")
-    Call<Main> getData(@QueryMap Map<String, String> fields);
+    Observable<Main> getData(@QueryMap Map<String, String> fields);
 }
